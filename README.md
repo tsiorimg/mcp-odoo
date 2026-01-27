@@ -29,8 +29,6 @@ mcp-odoo unlink --url http://localhost:8069 --database db --api-key KEY --model 
 mcp-odoo call --url http://localhost:8069 --database db --api-key KEY --model res.partner --method search --args '[]' --kwargs '{"domain":[["is_company","=",true]]}'
 ```
 
-Consultez `docs/` et `examples/` pour des guides complets (en construction).
-
 ## Remaining work
 - Add CI workflow (GitHub Actions) for unit + integration (Docker) and optional perf.
 - Register `integration` mark in pytest.ini.
@@ -49,4 +47,21 @@ mcp --help
 Remove everything (shim + venv):
 ```bash
 ./uninstall.sh
+```
+
+## Environment (.env) for CLI usage
+CLI commands read the same variables as the Python API. Create a `.env` (or export env vars) so you don’t have to pass them each time:
+```
+ODOO_URL=http://localhost:8069
+ODOO_DATABASE=mcp_test
+ODOO_USER=admin
+ODOO_API_KEY=your_api_key_or_password
+# Optional overrides
+ODOO_VERSION=17.0
+MCP_RETRY_ATTEMPTS=3
+MCP_RETRY_BACKOFF=0.3
+```
+With `.env` in place, you can call simply:
+```
+mcp search --model res.partner --domain '[]'
 ```
