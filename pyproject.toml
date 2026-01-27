@@ -2,7 +2,7 @@
 name = "mcp-odoo"
 version = "0.1.0"
 description = "Multi-Connector Platform for Odoo 14-19 (XML-RPC & JSON-2)"
-authors = ["MCP Team <dev@example.com>"]
+authors = ["RAVALISON Tsiorimampionina <rtsiori@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [{ include = "mcp_odoo", from = "src" }]

@@ -1,1 +1,0 @@
-"""Démonstration CLI (placeholder)."""
