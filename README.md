@@ -76,12 +76,20 @@ MCPOdoo (Factory)
 - **Automation specialists** using n8n/CLI workflows
 
 ## 📚 Quick Start
-### Installation
+
+### Installation & Setup
 ```bash
+# Development setup
+git clone https://github.com/tsiorimg/mcp-odoo.git
+cd mcp-odoo
 poetry install --with dev,test
+
+# OR Quick CLI installation
+./scripts/install.sh
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### Basic Usage
+### Python Usage
 ```python
 from mcp_odoo import MCPOdoo
 
@@ -98,7 +106,25 @@ partner_data = mcp.read("res.partner", partners[:5], ["name", "email"])
 print(f"Found {len(partners)} companies")
 ```
 
-### Testing Multi-Version Setup
+### CLI Usage
+Configure environment first:
+```bash
+# .env file
+ODOO_URL=http://localhost:8069
+ODOO_DATABASE=mcp_test
+ODOO_API_KEY=your_api_key
+```
+
+Then use CLI commands:
+```bash
+mcp-odoo search --model res.partner --domain '[["is_company", "=", true]]'
+mcp-odoo create --model res.partner --values '{"name":"New Partner"}'
+mcp-odoo call --model sale.order --method action_confirm --ids 1
+```
+
+## 🧪 Testing & Development
+
+### Multi-Version Testing
 ```bash
 # Launch test environment with Odoo 14, 17, 19
 docker-compose -f docker/docker-compose.test.yml up -d
@@ -109,61 +135,6 @@ pytest tests/integration/ -v
 # Performance benchmarks
 pytest tests/performance/ --benchmark-only
 ```
-
-### CLI Interface
-```bash
-# Auto-detect Odoo version
-mcp-odoo version --url http://localhost:8069
-
-# Search records  
-mcp-odoo search --model res.partner --domain '[["is_company", "=", true]]'
-
-# Read specific fields
-mcp-odoo read --model res.partner --ids 1,2 --fields '["name","email"]'
-
-# Create new record
-mcp-odoo create --model res.partner --values '{"name":"New Partner"}'
-
-# Update existing
-mcp-odoo write --model res.partner --ids 1 --values '{"phone":"+1234567890"}'
-
-# Delete records
-mcp-odoo unlink --model res.partner --ids 1
-
-# Call custom methods
-mcp-odoo call --model sale.order --method action_confirm --ids 1
-```
-
-## 🛠️ CLI Installation (scripts/install.sh)
-Use the provided installer to get a self-contained CLI (`mcp`) on your PATH:
-```bash
-scripts/install.sh
-export PATH="$HOME/.local/bin:$PATH"   # if not already set
-mcp --help
-```
-Uninstall cleanly:
-```bash
-scripts/uninstall.sh
-```
-
-### Environment for CLI
-Create a `.env` (or export env vars) so CLI commands can run without repeating flags:
-```
-ODOO_URL=http://localhost:8069
-ODOO_DATABASE=mcp_test
-ODOO_USER=admin
-ODOO_API_KEY=your_api_key_or_password
-# Optional
-ODOO_VERSION=17.0
-MCP_RETRY_ATTEMPTS=3
-MCP_RETRY_BACKOFF=0.3
-```
-Then you can simply run:
-```bash
-mcp search --model res.partner --domain '[]'
-```
-
-## 🧪 Development & Testing
 
 ### Development Status
 - ✅ **Core Architecture**: Hybrid connector system implemented
@@ -179,66 +150,9 @@ mcp search --model res.partner --domain '[]'
 - **REST Gateway**: HTTP API wrapper for web applications
 - **Migration Tools**: XML-RPC to JSON-2 transition utilities
 
-## 🚀 Installation Options
+## ⚙️ Advanced Configuration
 
-### Standard Development Setup
-```bash
-git clone https://github.com/tsiorimg/mcp-odoo.git
-cd mcp-odoo
-poetry install --with dev,test
-```
-
-### Quick CLI Installation
-Creates local environment with `mcp-odoo` command available globally:
-
-```bash
-./install.sh
-export PATH="$HOME/.local/bin:$PATH"  # if not already in PATH
-mcp-odoo --help
-```
-
-### Updates & Maintenance
-
-Multiple ways to stay up-to-date:
-
-```bash
-# Method 1: Built-in update command
-mcp-odoo update
-
-# Method 2: Re-run installer with --update flag  
-./install.sh --update
-
-# Method 3: Standalone update script (no local repo needed)
-curl -sSL https://raw.githubusercontent.com/tsiorimg/mcp-odoo/main/scripts/update.sh | bash
-
-# Check for available updates
-mcp-odoo check-updates
-```
-
-### Version Management
-
-```bash
-# Install specific version
-./install.sh --version=v1.2.3
-
-# Check current version
-mcp-odoo version
-mcp-odoo --version
-
-# Install from development branch
-./install.sh --version=develop
-```
-
-### Cleanup
-```bash
-./uninstall.sh  # Removes installation and virtual environment
-```
-
-## ⚙️ Configuration
 ### Environment Variables
-
-Create `.env` file for streamlined CLI usage:
-
 ```bash
 # Required
 ODOO_URL=http://localhost:8069
@@ -252,10 +166,19 @@ MCP_RETRY_ATTEMPTS=3           # Connection retry logic
 MCP_RETRY_BACKOFF=0.3          # Backoff delay in seconds
 ```
 
-With `.env` configured, CLI commands become simpler:
+### Updates & Version Management
 ```bash
-mcp-odoo search --model res.partner --domain '[]'
-# No need to specify URL, database, or API key each time
+# Update installation
+./scripts/update.sh
+
+# Install specific version
+./scripts/install.sh --version=v1.2.3
+
+# Check current version
+mcp-odoo --version
+
+# Uninstall
+./scripts/uninstall.sh
 ```
 
 ## 📊 API Compatibility Matrix
