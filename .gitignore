@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.*
+dist/
+build/
+.coverage
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+AGENTS.md

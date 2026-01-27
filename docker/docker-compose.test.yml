@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  odoo-14:
+    image: odoo:14.0
+    ports: ["8069:8069"]
+    environment:
+      - HOST=db-14
+      - USER=odoo
+      - PASSWORD=odoo
+    depends_on: ["db-14"]
+  odoo-17:
+    image: odoo:17.0
+    ports: ["8070:8069"]
+    environment:
+      - HOST=db-17
+      - USER=odoo
+      - PASSWORD=odoo
+    depends_on: ["db-17"]
+  odoo-19:
+    image: odoo:19.0
+    ports: ["8071:8069"]
+    environment:
+      - HOST=db-19
+      - USER=odoo
+      - PASSWORD=odoo
+    depends_on: ["db-19"]
+
+  db-14:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    volumes: ["odoo-14-data:/var/lib/postgresql/data"]
+
+  db-17:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    volumes: ["odoo-17-data:/var/lib/postgresql/data"]
+
+  db-19:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    volumes: ["odoo-19-data:/var/lib/postgresql/data"]
+
+volumes:
+  odoo-14-data:
+  odoo-17-data:
+  odoo-19-data:

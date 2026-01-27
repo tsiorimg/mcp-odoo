@@ -1,0 +1,12 @@
+site_name: MCP Odoo
+nav:
+  - Accueil: index.md
+  - Prise en main: getting-started.md
+  - API: api-reference.md
+  - Migration: migration-guide.md
+  - Exemples:
+      - Usage de base: examples/basic-usage.py
+      - Opérations bulk: examples/bulk-operations.py
+      - Intégration n8n: examples/n8n-integration.py
+theme:
+  name: material
