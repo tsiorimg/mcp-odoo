@@ -39,7 +39,7 @@ MCPOdoo (Factory)
 ├── Version Detection (/web/version)
 ├── XMLRPCConnector (Odoo 14-18)
 │   ├── xmlrpc.client
-│   └── API Key authentication
+│   └── Login/password auth (API key optional if enabled)
 └── JSON2Connector (Odoo 19+)
     ├── HTTP/JSON requests  
     └── Bearer token auth
@@ -158,6 +158,10 @@ pytest tests/performance/ --benchmark-only
 ODOO_URL=http://localhost:8069
 ODOO_DATABASE=mcp_test  
 ODOO_USER=admin
+# Choose authentication depending on Odoo version
+# - Odoo 14-18: set ODOO_PASSWORD (legacy login/password)
+# - Odoo 19+: set ODOO_API_KEY (Bearer token)
+ODOO_PASSWORD=your_password
 ODOO_API_KEY=your_api_key_here
 
 # Optional
