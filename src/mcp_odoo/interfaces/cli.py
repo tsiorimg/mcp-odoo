@@ -69,17 +69,30 @@ def _coerce_version(val: str | None) -> float | None:
         return None
 
 
-@click.group()
-@click.option("--verbose", "-v", is_flag=True, help="Enable logging")
+@click.group(help=r"""MCP Odoo CLI - Multi-Connector Platform for Odoo (14-19)
+
+Unified CLI tool for connecting to Odoo instances via XML-RPC (14-18) or JSON-2 API (19+).
+Automatically detects Odoo version and uses the appropriate API.""")
+@click.option("--verbose", "-v", is_flag=True, help="Enable detailed logging for troubleshooting")
 def cli(verbose: bool) -> None:
+    """MCP Odoo CLI - Multi-Connector Platform for Odoo."""
     if verbose:
         configure_logging()
 
 
-@cli.command()
-@click.option("--url", required=True, envvar="ODOO_URL", help="Odoo URL", type=str)
-@click.option("--version", "odoo_version", envvar="ODOO_VERSION", help="Force version (e.g. 17.0, 19.0)", type=str)
+@cli.command(help=r"""Detect Odoo instance version via /web/webclient/version_info endpoint.
+
+Useful to verify connectivity and determine which API (XML-RPC vs JSON-2) will be used.
+
+Examples:
+  mcp_odoo version --url https://mycompany.odoo.com
+  mcp_odoo version --url http://localhost:8069""")
+@click.option("--url", required=True, envvar="ODOO_URL", 
+              help="Odoo instance URL (e.g. https://mycompany.odoo.com or http://localhost:8069)", type=str)
+@click.option("--version", "odoo_version", envvar="ODOO_VERSION", 
+              help="Force version detection (e.g. 17.0, 19.0) - bypasses auto-detection", type=str)
 def version(url: str, odoo_version: Optional[str]) -> None:
+    """Detect and display Odoo instance version."""
     v = _coerce_version(odoo_version) or detect_odoo_version(url)
     click.echo(f"Detected Odoo version: {v}")
 
@@ -113,10 +126,25 @@ def common_conn_options(fn):
     return fn
 
 
-@cli.command()
+@cli.command(help=r"""Search for record IDs in Odoo using domain filters.
+
+Returns a list of record IDs matching the specified domain criteria.
+Use this to find records before reading their data.
+
+Examples:
+  # Find all companies
+  mcp_odoo search --model res.partner --domain '[["is_company", "=", true]]'
+
+  # Find partners with specific name
+  mcp_odoo search --model res.partner --domain '[["name", "ilike", "Acme"]]'
+
+  # Find all active users
+  mcp_odoo search --model res.users --domain '[["active", "=", true]]'""")
 @common_conn_options
-@click.option("--model", required=True, help="Odoo model (e.g. res.partner)", type=str)
-@click.option("--domain", default="[]", show_default=True, help="JSON domain", type=str)
+@click.option("--model", required=True, 
+              help="Odoo model name (e.g. res.partner, res.users, sale.order)", type=str)
+@click.option("--domain", default="[]", show_default=True, 
+              help='Search domain as JSON list (e.g. \'[["field", "operator", "value"]]\'))', type=str)
 def search(url, database, user, api_key, password, retry_attempts, retry_backoff, ssl_verify, odoo_version, model, domain):
     secret = password or api_key
     _ensure_conn_params(url, database, secret)
@@ -136,11 +164,27 @@ def search(url, database, user, api_key, password, retry_attempts, retry_backoff
     click.echo(ids)
 
 
-@cli.command()
+@cli.command(help=r"""Read and retrieve data from Odoo records.
+
+Fetches field values from existing records using their IDs.
+Returns detailed record data in JSON format.
+
+Examples:
+  # Read all fields from partner ID 1
+  mcp_odoo read --model res.partner --ids 1
+
+  # Read specific fields from multiple partners
+  mcp_odoo read --model res.partner --ids 1,2,3 --fields '["name", "email", "phone"]'
+
+  # Read product information
+  mcp_odoo read --model product.product --ids 5 --fields '["name", "list_price", "qty_available"]'""")
 @common_conn_options
-@click.option("--model", required=True, help="Odoo model", type=str)
-@click.option("--ids", required=True, help="Comma-separated IDs", type=str)
-@click.option("--fields", help="JSON list of fields", type=str)
+@click.option("--model", required=True, 
+              help="Odoo model name (e.g. res.partner, product.product, sale.order)", type=str)
+@click.option("--ids", required=True, 
+              help="Comma-separated record IDs to read (e.g. 1,2,3)", type=str)
+@click.option("--fields", 
+              help='JSON list of field names to retrieve (e.g. \'["name", "email"]\') - omit for all fields', type=str)
 def read(url, database, user, api_key, password, retry_attempts, retry_backoff, ssl_verify, odoo_version, model, ids, fields):
     secret = password or api_key
     _ensure_conn_params(url, database, secret)
@@ -161,10 +205,25 @@ def read(url, database, user, api_key, password, retry_attempts, retry_backoff, 
     click.echo(json.dumps(records, indent=2, ensure_ascii=False))
 
 
-@cli.command()
+@cli.command(help=r"""Create new records in Odoo.
+
+Creates a new record with the specified field values.
+Returns the ID of the newly created record.
+
+Examples:
+  # Create a new company
+  mcp_odoo create --model res.partner --values '{"name": "ACME Corp", "is_company": true}'
+
+  # Create a new contact
+  mcp_odoo create --model res.partner --values '{"name": "John Doe", "email": "john@example.com"}'
+
+  # Create a product
+  mcp_odoo create --model product.product --values '{"name": "My Product", "list_price": 99.99}'""")
 @common_conn_options
-@click.option("--model", required=True, help="Odoo model", type=str)
-@click.option("--values", required=True, help='JSON dict of values', type=str)
+@click.option("--model", required=True, 
+              help="Odoo model name (e.g. res.partner, product.product)", type=str)
+@click.option("--values", required=True, 
+              help='JSON dictionary of field values (e.g. \'{"name": "Value", "field": "data"}\')', type=str)
 def create(url, database, user, api_key, password, retry_attempts, retry_backoff, ssl_verify, odoo_version, model, values):
     secret = password or api_key
     _ensure_conn_params(url, database, secret)
@@ -184,11 +243,27 @@ def create(url, database, user, api_key, password, retry_attempts, retry_backoff
     click.echo(record_id)
 
 
-@cli.command()
+@cli.command(help=r"""Update existing Odoo records.
+
+Modifies field values of existing records using their IDs.
+Returns True if the update was successful.
+
+Examples:
+  # Update partner email
+  mcp_odoo write --model res.partner --ids 1 --values '{"email": "new@example.com"}'
+
+  # Update multiple partners
+  mcp_odoo write --model res.partner --ids 1,2,3 --values '{"phone": "+1234567890"}'
+
+  # Update product price
+  mcp_odoo write --model product.product --ids 5 --values '{"list_price": 149.99}'""")
 @common_conn_options
-@click.option("--model", required=True, help="Odoo model", type=str)
-@click.option("--ids", required=True, help="Comma-separated IDs", type=str)
-@click.option("--values", required=True, help='JSON dict of values', type=str)
+@click.option("--model", required=True, 
+              help="Odoo model name (e.g. res.partner, product.product)", type=str)
+@click.option("--ids", required=True, 
+              help="Comma-separated record IDs to update (e.g. 1,2,3)", type=str)
+@click.option("--values", required=True, 
+              help='JSON dictionary of field values to update (e.g. \'{"field": "new_value"}\')', type=str)
 def write(url, database, user, api_key, password, retry_attempts, retry_backoff, ssl_verify, odoo_version, model, ids, values):
     secret = password or api_key
     _ensure_conn_params(url, database, secret)
@@ -209,10 +284,26 @@ def write(url, database, user, api_key, password, retry_attempts, retry_backoff,
     click.echo(ok)
 
 
-@cli.command()
+@cli.command(help=r"""Delete records from Odoo.
+
+Permanently removes records from the database using their IDs.
+⚠️  WARNING: This action cannot be undone!
+Returns True if the deletion was successful.
+
+Examples:
+  # Delete a single partner (be careful!)
+  mcp_odoo unlink --model res.partner --ids 999
+
+  # Delete multiple test records
+  mcp_odoo unlink --model product.product --ids 100,101,102
+
+  # Delete a draft sale order
+  mcp_odoo unlink --model sale.order --ids 45""")
 @common_conn_options
-@click.option("--model", required=True, help="Odoo model", type=str)
-@click.option("--ids", required=True, help="Comma-separated IDs", type=str)
+@click.option("--model", required=True, 
+              help="Odoo model name (e.g. res.partner, sale.order)", type=str)
+@click.option("--ids", required=True, 
+              help="Comma-separated record IDs to delete (e.g. 1,2,3) - ⚠️ PERMANENT DELETION", type=str)
 def unlink(url, database, user, api_key, password, retry_attempts, retry_backoff, ssl_verify, odoo_version, model, ids):
     secret = password or api_key
     _ensure_conn_params(url, database, secret)
@@ -232,12 +323,29 @@ def unlink(url, database, user, api_key, password, retry_attempts, retry_backoff
     click.echo(ok)
 
 
-@cli.command()
+@cli.command(help=r"""Call custom methods on Odoo models.
+
+Executes public methods available on Odoo models with custom arguments.
+Useful for advanced operations, workflows, and custom business logic.
+
+Examples:
+  # Call action_confirm on sale order
+  mcp_odoo call --model sale.order --method action_confirm --args '[123]'
+
+  # Get default values for a model
+  mcp_odoo call --model res.partner --method default_get --args '[["name", "email"]]'
+
+  # Call method with keyword arguments
+  mcp_odoo call --model account.move --method post --kwargs '{"soft": false}'""")
 @common_conn_options
-@click.option("--model", required=True, help="Odoo model", type=str)
-@click.option("--method", required=True, help="Method name", type=str)
-@click.option("--args", default="[]", show_default=True, help="Positional args JSON", type=str)
-@click.option("--kwargs", default="{}", show_default=True, help="Keyword args JSON", type=str)
+@click.option("--model", required=True, 
+              help="Odoo model name (e.g. sale.order, account.move)", type=str)
+@click.option("--method", required=True, 
+              help="Method name to call on the model (e.g. action_confirm, default_get)", type=str)
+@click.option("--args", default="[]", show_default=True, 
+              help='Positional arguments as JSON list (e.g. \'[123, "value"]\')', type=str)
+@click.option("--kwargs", default="{}", show_default=True, 
+              help='Keyword arguments as JSON dict (e.g. \'{"param": "value", "flag": true}\')', type=str)
 def call(url, database, user, api_key, password, retry_attempts, retry_backoff, ssl_verify, odoo_version, model, method, args, kwargs):
     secret = password or api_key
     _ensure_conn_params(url, database, secret)
