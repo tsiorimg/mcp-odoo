@@ -5,7 +5,7 @@ PREFIX="${HOME}/.local"
 VENV_DIR="${PREFIX}/share/mcp_odoo_venv"
 BIN_DIR="${PREFIX}/bin"
 
-rm -f "${BIN_DIR}/mcp"
+rm -f "${BIN_DIR}/mcp_odoo"
 rm -rf "${VENV_DIR}"
 
-echo "Removed mcp CLI shim and virtualenv."
+echo "Removed mcp_odoo CLI shim and virtualenv."

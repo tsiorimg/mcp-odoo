@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import xmlrpc.client
+import ssl
 from functools import lru_cache
 from typing import Any, Iterable
 
@@ -16,9 +17,22 @@ logger = get_logger(__name__)
 
 class XMLRPCConnector(OdooConnector):
     def __init__(self, *args, retry_attempts: int = 3, retry_backoff: float = 0.3, **kwargs):
+        verify = kwargs.pop("verify", True)
         super().__init__(*args, **kwargs)
-        self.common = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/common", allow_none=True)
-        self.object = xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/object", allow_none=True)
+        transport = None
+        if self.url.startswith("https://"):
+            if verify is False:
+                context = ssl._create_unverified_context()
+                transport = xmlrpc.client.SafeTransport(context=context)
+            elif isinstance(verify, str):
+                context = ssl.create_default_context(cafile=verify)
+                transport = xmlrpc.client.SafeTransport(context=context)
+        self.common = xmlrpc.client.ServerProxy(
+            f"{self.url}/xmlrpc/2/common", allow_none=True, transport=transport
+        )
+        self.object = xmlrpc.client.ServerProxy(
+            f"{self.url}/xmlrpc/2/object", allow_none=True, transport=transport
+        )
         self.retry_attempts = retry_attempts
         self.retry_backoff = retry_backoff
         self._uid = self.common.authenticate(self.database, self.user, self.api_key, {})
