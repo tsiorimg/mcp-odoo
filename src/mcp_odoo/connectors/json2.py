@@ -15,9 +15,16 @@ logger = get_logger(__name__)
 
 
 class JSON2Connector(OdooConnector):
-    def __init__(self, *args, retry_attempts: int = 3, retry_backoff: float = 0.3, **kwargs):
+    def __init__(
+        self,
+        *args,
+        retry_attempts: int = 3,
+        retry_backoff: float = 0.3,
+        verify: bool | str = True,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
-        self._client = httpx.Client(base_url=self.url, timeout=self.timeout)
+        self._client = httpx.Client(base_url=self.url, timeout=self.timeout, verify=verify)
         self._headers = build_headers(self.database, self.api_key)
         self.retry_attempts = retry_attempts
         self.retry_backoff = retry_backoff
