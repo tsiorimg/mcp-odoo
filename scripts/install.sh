@@ -55,13 +55,13 @@ else
   pip install "git+${REPO_URL}@${REF}"
 fi
 
-cat > "${BIN_DIR}/mcp" <<'EOF'
+cat > "${BIN_DIR}/mcp_odoo" <<'EOF'
 #!/usr/bin/env bash
 VENV_DIR="${HOME}/.local/share/mcp_odoo_venv"
 source "${VENV_DIR}/bin/activate"
 exec mcp-odoo "$@"
 EOF
-chmod +x "${BIN_DIR}/mcp"
+chmod +x "${BIN_DIR}/mcp_odoo"
 
-echo "Installed mcp CLI to ${BIN_DIR}/mcp"
+echo "Installed mcp_odoo CLI to ${BIN_DIR}/mcp_odoo"
 echo "Ensure ${BIN_DIR} is in your PATH (e.g., export PATH=\"${BIN_DIR}:\$PATH\")"
