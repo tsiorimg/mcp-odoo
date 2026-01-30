@@ -84,6 +84,7 @@ class ConnectorFactory:
                 retry_attempts=retry_attempts,
                 retry_backoff=retry_backoff,
                 verify=verify_flag,
+                version=resolved_version,
             )
         # XML-RPC (14-18): accept password or api_key fallback
         secret = password or api_key
@@ -100,6 +101,7 @@ class ConnectorFactory:
             retry_attempts=retry_attempts,
             retry_backoff=retry_backoff,
             verify=verify_flag,
+            version=resolved_version,
         )
 
 

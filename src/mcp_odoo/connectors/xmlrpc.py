@@ -16,9 +16,16 @@ logger = get_logger(__name__)
 
 
 class XMLRPCConnector(OdooConnector):
-    def __init__(self, *args, retry_attempts: int = 3, retry_backoff: float = 0.3, **kwargs):
+    def __init__(
+        self,
+        *args,
+        retry_attempts: int = 3,
+        retry_backoff: float = 0.3,
+        version: float | None = None,
+        **kwargs,
+    ):
         verify = kwargs.pop("verify", True)
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, version=version, **kwargs)
         transport = None
         if self.url.startswith("https://"):
             if verify is False:
@@ -38,7 +45,7 @@ class XMLRPCConnector(OdooConnector):
         self._uid = self.common.authenticate(self.database, self.user, self.api_key, {})
         if not self._uid:
             raise AuthenticationError("XML-RPC authentication failed")
-        self._version = self._fetch_version()
+        self._version = self._provided_version if self._provided_version is not None else self._fetch_version()
 
     def _fetch_version(self) -> float:
         info = self.common.version()

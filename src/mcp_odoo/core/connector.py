@@ -9,12 +9,21 @@ from typing import Any, Iterable
 class OdooConnector(ABC):
     """Defines common operations supported by the different APIs."""
 
-    def __init__(self, url: str, database: str, api_key: str, user: str, timeout: float = 10.0):
+    def __init__(
+        self,
+        url: str,
+        database: str,
+        api_key: str,
+        user: str,
+        timeout: float = 10.0,
+        version: float | None = None,
+    ):
         self.url = url.rstrip("/")
         self.database = database
         self.api_key = api_key
         self.user = user
         self.timeout = timeout
+        self._provided_version = version
 
     @abstractmethod
     def version(self) -> float:
