@@ -21,14 +21,15 @@ class JSON2Connector(OdooConnector):
         retry_attempts: int = 3,
         retry_backoff: float = 0.3,
         verify: bool | str = True,
+        version: float | None = None,
         **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, version=version, **kwargs)
         self._client = httpx.Client(base_url=self.url, timeout=self.timeout, verify=verify)
         self._headers = build_headers(self.database, self.api_key)
         self.retry_attempts = retry_attempts
         self.retry_backoff = retry_backoff
-        self._version = self._fetch_version()
+        self._version = self._provided_version if self._provided_version is not None else self._fetch_version()
 
     def _fetch_version(self) -> float:
         resp = self._client.get("/web/version")
